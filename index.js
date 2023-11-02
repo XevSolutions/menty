@@ -69,7 +69,7 @@ async function main() {
     initial: true,
     active: "Yes",
     inactive: "No",
-  });
+  }); 
 
   //& Clone the repo
   // const spinner = ora('Cloning template...').start();
