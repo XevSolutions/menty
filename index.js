@@ -28,7 +28,6 @@ if (options.logout) {
 }
 
 async function main() {
-
   //^ Prompt for directory name
   const { directory } = await prompts({
     type: "text",
@@ -69,48 +68,44 @@ async function main() {
     initial: true,
     active: "Yes",
     inactive: "No",
-  }); 
+  });
 
-  //& Clone the repo
-  // const spinner = ora('Cloning template...').start();
-  // try {
-  //   await execAsync(`git clone https://github.com/achsal2/menty-default-template.git ${directory}`, {
-  //     stdio: 'ignore' // Silence stdout to make spinner visible
-  //   });
-  //   spinner.succeed('Template cloned successfully.');
-  // } catch (err) {
-  //   spinner.fail('Failed to clone the template.');
-  //   console.error(chalk.red(err));
-  //   process.exit(1);
-  // }
-
+  //& Choose the template
   const { template } = await prompts({
-    type: 'select',
-    name: 'template',
-    message: 'Select a template to use:',
+    type: "select",
+    name: "template",
+    message: "Select a template to use:",
     choices: [
-      { title: 'default', value: 'default' },
+      { title: "default", value: "default" },
       // ... add other templates as needed
     ],
   });
 
   //& Clone the specific template
-  const repoUrl = 'https://github.com/achsal2/menty-default-template.git'
-  const spinner = ora('Cloning template...').start();
+  const repoUrl = "https://github.com/XevSolutions/menty-templates.git";
+  const cloneCommand = `git clone -n --depth=1 --filter=tree:0 --branch main ${repoUrl} ${directory}`;
+  const sparseCheckoutCommand = `git -C ${directory} sparse-checkout set --no-cone ${template}`;
+
+  const spinner = ora("Cloning template...").start();
   try {
-    // Initialize a new git repository
-    await execAsync(`git init ${directory}`);
-    // Add the remote
-    await execAsync(`git -C ${directory} remote add origin ${repoUrl}`);
-    // Enable sparse-checkout
-    await execAsync(`git -C ${directory} sparse-checkout init --cone`);
-    // Set the path to the specific template
-    await execAsync(`git -C ${directory} sparse-checkout set ${template}`);
-    // Pull the files
-    await execAsync(`git -C ${directory} pull origin main`);
-    spinner.succeed('Template cloned successfully.');
+    await execAsync(cloneCommand);
+    await execAsync(sparseCheckoutCommand);
+    await execAsync(`git -C ${directory} checkout`);
+
+    if (template !== ".") {
+      const templateDir = path.join(directory, template);
+      const files = fs.readdirSync(templateDir);
+      files.forEach((file) => {
+        const oldPath = path.join(templateDir, file);
+        const newPath = path.join(directory, file);
+        fs.renameSync(oldPath, newPath);
+      });
+      fs.rmdirSync(templateDir);
+    }
+
+    spinner.succeed("Template cloned successfully.");
   } catch (err) {
-    spinner.fail('Failed to clone the template.');
+    spinner.fail("Failed to clone the template.");
     console.error(chalk.red(err));
     process.exit(1);
   }
@@ -122,23 +117,22 @@ async function main() {
   }
 
   //* Additional instructions for the user
-  console.log('');
+  console.log("");
   console.log(chalk.green("Project setup complete!"));
   console.log(chalk.yellow("To get started, follow these steps:"));
-  console.log('');
+  console.log("");
   console.log(chalk.cyan(`cd ${directory}`));
   !installDeps && console.log(chalk.cyan("npm install"));
   console.log(chalk.cyan("npm run dev"));
-  console.log('');
+  console.log("");
   console.log(chalk.green("Happy coding!"));
-
 }
 
 main();
 
 function execAsync(cmd, opts) {
   return new Promise((resolve, reject) => {
-    exec(cmd,opts).on('close', code => {
+    exec(cmd, opts).on("close", (code) => {
       if (code === 0) {
         resolve();
       }
