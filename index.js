@@ -82,7 +82,7 @@ async function main() {
   });
 
   //& Clone the specific template
-  const repoUrl = process.env.TEMPLATE_GITHUB_REPO;
+  const repoUrl = "https://github.com/XevSolutions/menty-templates.git";
   const cloneCommand = `git clone -n --depth=1 --filter=tree:0 --branch main ${repoUrl} ${directory}`;
   const sparseCheckoutCommand = `git -C ${directory} sparse-checkout set --no-cone ${template}`;
 
@@ -130,13 +130,14 @@ async function main() {
 
 main();
 
-function execAsync(cmd, opts) {
+function execAsync(cmd, opts = {}) {
   return new Promise((resolve, reject) => {
-    exec(cmd, opts).on("close", (code) => {
-      if (code === 0) {
-        resolve();
+    exec(cmd, opts, (error, stdout, stderr) => {
+      if (error) {
+        reject(new Error(`Execution failed with code ${error.code}: ${stderr}`));
+      } else {
+        resolve(stdout);
       }
-      reject();
     });
   });
 }
