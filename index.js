@@ -86,7 +86,7 @@ async function main() {
   const cloneCommand = `git clone -n --depth=1 --filter=tree:0 --branch main ${repoUrl} ${directory}`;
   const sparseCheckoutCommand = `git -C ${directory} sparse-checkout set --no-cone ${template}`;
 
-  const spinner = ora("Cloning template...").start();
+  let spinner = ora("Cloning template...").start();
   try {
     await execAsync(cloneCommand);
     await execAsync(sparseCheckoutCommand);
@@ -107,6 +107,24 @@ async function main() {
   } catch (err) {
     spinner.fail("Failed to clone the template.");
     console.error(chalk.red(err));
+    process.exit(1);
+  }
+
+  //& Initialize a new git repository
+  spinner = ora("Initializing new Git repository...").start();
+  try {
+    // Remove the existing .git directory from the template clone
+    await deleteAsync([`${directory}/.git`], {
+      force: true,
+    });
+
+    // Initialize a new git repository
+    await execAsync(`git -C ${directory} init`);
+
+    spinner.succeed("New Git repository initialized.");
+  } catch (err) {
+    spinner.fail("Failed to set up Git repository.");
+    console.error(chalk.red(err.message));
     process.exit(1);
   }
 
