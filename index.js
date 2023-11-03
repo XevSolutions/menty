@@ -14,7 +14,7 @@ import { deleteAsync } from "del";
 dotenv.config();
 const configPath = path.join(os.homedir(), ".your-cli-config.json");
 const program = new Command();
-program.version("0.1.0").option("-auth").option("--logout", "Log out by clearing saved API key").option("--yarn", "Use Yarn instead of NPM");
+program.version("0.1.0").option("--yarn", "Use Yarn instead of NPM");
 program.parse(process.argv);
 const options = program.opts();
 
@@ -82,7 +82,7 @@ async function main() {
   });
 
   //& Clone the specific template
-  const repoUrl = "https://github.com/XevSolutions/menty-templates.git";
+  const repoUrl = process.env.TEMPLATE_GITHUB_REPO;
   const cloneCommand = `git clone -n --depth=1 --filter=tree:0 --branch main ${repoUrl} ${directory}`;
   const sparseCheckoutCommand = `git -C ${directory} sparse-checkout set --no-cone ${template}`;
 
