@@ -14,7 +14,7 @@ import { deleteAsync } from "del";
 dotenv.config();
 const configPath = path.join(os.homedir(), ".your-cli-config.json");
 const program = new Command();
-program.version("0.1.0").option("--yarn", "Use Yarn instead of NPM");
+program.version("0.2.2").option("--yarn", "Use Yarn instead of NPM");
 program.parse(process.argv);
 const options = program.opts();
 
